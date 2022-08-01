@@ -12,31 +12,27 @@
 #define STOP_BYTE  0x0D
 
 #define BUFSIZE 10
-#define NUM_OF_STUDENTS 12
+#define NUM_OF_STUDENTS 9
 
 struct student
 {
   String name;
-  char id[10]; 
+  char id[11]; 
   bool present;
   bool enrolled;
 }; 
 
 struct student students[NUM_OF_STUDENTS] = {
     
-    {"TEAM LEADER", "0600118D97", false, false},
-    {"Zach Redcay", "060012444F", false, false},
-    {"Alex Doyle", "0600118D6C", false, false},
     {"BIG T", "06000E5C24", false, true},
     {"E BOSS", "06001227D1", false, true},
     {"Alina Endres", "0600124488", false, true},
     {"Issy Hoffmann", "0600123F61", false, true},
-    {"BUH'LAKE", "060011A751F", false, true},
+    {"BUH LAKE", "060011A751", false, true},
     {"Karen", "0600123FB2", false, true},
     {"David Moore", "0600007EB7", false, true},
     {"McWilliams", "0600007713", false, true},
-    {"PAPA GABE", "06000050B2", false, true},
-    
+    {"PAPA GABE", "06000050B2", false, true}
   }; 
 
 
@@ -61,8 +57,7 @@ void setup()
   while(!Serial);           // Wait for Serial port to be ready
   Serial.println("RFID Reader"); 
   Serial.println("Setup complete");
-  Serial.println();
-  Serial.flush(); 
+  Serial.println(); 
 
   lcd.setCursor(0,1); 
   lcd.print("Setup done");
@@ -77,7 +72,6 @@ void loop()
 {
   digitalWrite(RFID_EN, LOW); // Put Reader in 'Active' Mode
   lcd.clear(); 
-  Serial.flush();
 //  data[0] = 0; // Clear buffer
 
   if (Serial.available())
@@ -91,8 +85,9 @@ void loop()
       //Serial.print("Chars Read: ");
       //Serial.println(charsRead);
       bool access = false;
+      int i = 0;
 
-      for(int i = 0; i <= 12; i++)
+      for(i = 0; i <= 8; i++)
       {
         for(int j = 0; j < BUFSIZE; j++)
         {
@@ -105,32 +100,35 @@ void loop()
             break;
           }
         }
-        if (access == true)
-        {
-          if (!students[i].enrolled)
-          {
-            access = false;
-            lcd.print("ACCESS DENIED");
-            break;
-          }else
-          {
-            students[i].present = !students[i].present;
-          }
-          lcd.print(students[i].name);
-          delay(1000);
-          lcd.clear();
-          if (students[i].present)
-          {
-            lcd.print("IS PRESENT");
-          }else
-          {
-            lcd.print("HAS LEFT");
-          }
-          Serial.println(students[i].name);
-          Serial.println(students[i].present);
+        if (access == true){
           break;
         }
       }
+      if (access == true)
+      {
+        if (!students[i].enrolled)
+        {
+          
+        }else
+        {
+          students[i].present = !students[i].present;
+        }
+        lcd.print(students[i].name);
+        delay(1000);
+        lcd.clear();
+        if (students[i].present)
+        {
+          lcd.print("IS PRESENT");
+        }else
+        {
+          lcd.print("HAS LEFT");
+        }
+        Serial.println(students[i].name);
+        Serial.println(students[i].present);
+      }else{
+          lcd.print("ACCESS DENIED");
+      }
+  
       
       if (access == true)
       {
@@ -149,7 +147,6 @@ void loop()
       }
       Serial.println();
     delay(2000);
-    Serial.flush();
     }
     while(Serial.available())
     {
