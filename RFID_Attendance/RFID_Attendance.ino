@@ -14,6 +14,7 @@
 #define BUFSIZE 10
 #define NUM_OF_STUDENTS 9
 
+// Stuct set up for a student
 struct student
 {
   String name;
@@ -22,8 +23,8 @@ struct student
   bool enrolled;
 }; 
 
+// Array of students
 struct student students[NUM_OF_STUDENTS] = {
-    
     {"BIG T", "06000E5C24", false, true},
     {"E BOSS", "06001227D1", false, true},
     {"Alina Endres", "0600124488", false, true},
@@ -35,9 +36,8 @@ struct student students[NUM_OF_STUDENTS] = {
     {"PAPA GABE", "06000050B2", false, true}
   }; 
 
-
-int charsRead = 0; 
-String garbage = "";
+int charsRead = 0;  // Keeps track of how many characters are read by the serial port
+String garbage = "";  // Used to manually clear the serial port
 
 //// initialize the library by associating any needed LCD interface pin
 //// with the arduino pin number it is connected to
@@ -50,60 +50,63 @@ void setup()
   lcd.begin(16, 2); 
   lcd.print("Init"); 
   pinMode(RFID_EN, OUTPUT); 
-  digitalWrite(RFID_EN, HIGH); // Put Reader in 'Idle' Mode
+  digitalWrite(RFID_EN, HIGH);              // Put Reader in 'Idle' Mode
 
 
   Serial.begin(2400); 
-  while(!Serial);           // Wait for Serial port to be ready
+  while(!Serial);                           // Wait for Serial port to be ready
   Serial.println("RFID Reader"); 
   Serial.println("Setup complete");
   Serial.println(); 
 
+  // Set up LCD for Operation
   lcd.setCursor(0,1); 
   lcd.print("Setup done");
   delay(2000);
-
-  
- 
-
 }
 
 void loop() 
 {
   digitalWrite(RFID_EN, LOW); // Put Reader in 'Active' Mode
   lcd.clear(); 
-//  data[0] = 0; // Clear buffer
 
+  // While there is serial data to read
   if (Serial.available())
   {
+    // Once the start byte is found
     if (Serial.read() == START_BYTE)
     {
-      char data[BUFSIZE]; 
-      charsRead = Serial.readBytesUntil(STOP_BYTE, data, BUFSIZE);
-      Serial.flush(); 
+      char data[BUFSIZE];   // Hold the data that is being read from the serial port
+      charsRead = Serial.readBytesUntil(STOP_BYTE, data, BUFSIZE);  // Read data from the serial port until the stop byte is found 
       digitalWrite(RFID_EN, HIGH); // Put Reader in 'Idle' Mode - stop reading data 
-      //Serial.print("Chars Read: ");
-      //Serial.println(charsRead);
-      bool access = false;
-      int i = 0;
 
+      bool access = false;  // Access flag for each student
+      int i = 0;            // Counter to keep track of which student has scanned
+
+      // Check to see which student has swiped their card
       for(i = 0; i <= 8; i++)
       {
-        for(int j = 0; j < BUFSIZE; j++)
+        for(int j = 0; j < BUFSIZE; j++)    // Compare swiped ID to current student, check to see if they match
         {
           if (students[i].id[j] == data[j])
           {
+            // If ID's match, continue comparing
             access = true;
           }else
           {
+            // If ID's do not match, break
             access = false;
             break;
           }
         }
-        if (access == true){
+        // If the student has been found, break
+        if (access == true)
+        {
           break;
         }
       }
+
+      // This section is used to display the student name and current status
       if (access == true)
       {
         if (!students[i].enrolled)
@@ -111,11 +114,15 @@ void loop()
           
         }else
         {
+          // Toggle the students present to either 'present' or 'has left'
           students[i].present = !students[i].present;
         }
+        // Print the students name for 1 sec
         lcd.print(students[i].name);
         delay(1000);
         lcd.clear();
+
+        // Print the students status for 2 sec
         if (students[i].present)
         {
           lcd.print("IS PRESENT");
@@ -123,13 +130,15 @@ void loop()
         {
           lcd.print("HAS LEFT");
         }
+        // Print information to the serial port
         Serial.println(students[i].name);
         Serial.println(students[i].present);
       }else{
+          // If the student is not enrolled, deny access
           lcd.print("ACCESS DENIED");
       }
   
-      
+      // Serial port printing for troubleshooting
       if (access == true)
       {
         Serial.println("ACCESS GRANTED");
@@ -137,17 +146,14 @@ void loop()
       {
         Serial.println("ACCESS DENIED");
       }     
-      //Serial.print("ID: "); 
-      //lcd.print("ID:");
-      //lcd.print(data);
-      for (int i=0; i < BUFSIZE; i++)
-      {
-        //lcd.print(data[i]); 
-        //Serial.print(data[i]);
-      }
+
       Serial.println();
-    delay(2000);
+      delay(2000);
     }
+
+    // Used to clear the rest of the serial port data from the serial buffer
+    // Serial.flush() does not actually clear the buffer, it merely waits for the buffer to read completely
+    // Because of this, the serial buffer must be cleared manually
     while(Serial.available())
     {
       garbage = Serial.read();
