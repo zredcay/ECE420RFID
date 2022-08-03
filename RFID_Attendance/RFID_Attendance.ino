@@ -119,9 +119,7 @@ void loop()
         }
         // Print the students name for 1 sec
         lcd.print(students[i].name);
-        delay(1000);
-        lcd.clear();
-
+        lcd.setCursor(0,1); 
         // Print the students status for 2 sec
         if (students[i].present)
         {
@@ -135,6 +133,7 @@ void loop()
         Serial.println(students[i].present);
       }else{
           // If the student is not enrolled, deny access
+          lcd.setCursor(0,0); 
           lcd.print("ACCESS DENIED");
       }
   
@@ -149,6 +148,7 @@ void loop()
 
       Serial.println();
       delay(2000);
+      lcd.clear();
     }
 
     // Used to clear the rest of the serial port data from the serial buffer
